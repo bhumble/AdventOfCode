@@ -1,58 +1,44 @@
 #!/usr/bin/python3
 
-import re
+from collections import deque
 
 with open('input.txt', 'r') as f:
     data = f.readlines()
     f.close()
-    data.append("\n")
-
-
-# Parse rules
-rules = {}
-for line in data:
-    matches = re.match(r'(.*) bags contain (.*)', line)
-    if not matches:
-        continue
-    holder = matches.group(1)
-    heldBags = matches.group(2).split(", ")
-    if holder not in rules:
-        rules[holder] = []
-    for rule in heldBags:
-        if rule == "no other bags.":
-            continue
-        matches = re.match(r'([0-9]*) (.*) bag.*', rule)
-        count = int(matches.group(1))
-        heldBag = matches.group(2)
-        for i in range(count):
-            rules[holder].append(heldBag)
-        #print(rules)
-
-canHoldShinyGoldBag = []
-
-def whatCanHold(innerBag):
-    for outerBag in rules:
-        if innerBag in rules[outerBag]:
-            canHoldShinyGoldBag.append(outerBag)
-            whatCanHold(outerBag)
-
-shinyGoldBagHolds = []
-
-def heldBy(outerBag):
-    for innerBag in rules[outerBag]:
-        shinyGoldBagHolds.append(innerBag)
-        heldBy(innerBag)
 
 def part1():
-    # Count how many bags can directly or evenutally hold my "shiny gold" bag
-    whatCanHold("shiny gold")
-    dedup = list(set(canHoldShinyGoldBag))
-    print(len(dedup))
+    # Count how many times the number got larger than the previous entry
+    i = 0
+    answer = 0
+    prevValue = 0
+    for line in data:
+        value = int(line.strip())
+        if (i > 0 and value > prevValue):
+            answer += 1
+            #print(value, " (increased)")
+        #else:
+            #print(value)
+        i += 1
+        prevValue = value
+    print(answer)
 
 def part2():
-    # Count how many bags can be directly or evenutally held by my "shiny gold" bag
-    heldBy("shiny gold")
-    print(len(shinyGoldBagHolds))
+    # Count how many times the sum of a 3-sample window got larger than the previous window
+    i = 0
+    answer = 0
+    window = deque([0, 0, 0])
+    for line in data:
+        value = int(line.strip())
+        popped = window.popleft()
+        if (i > 2 and (sum(window) + value) > (popped + sum(window))):
+            answer += 1
+            window.append(value)
+            #print(window, " (increased)")
+        else:
+            window.append(value)
+            #print(window)
+        i += 1
+    print(answer)
 
 part1()
 part2()
